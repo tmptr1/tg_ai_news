@@ -392,8 +392,13 @@ def create_top_news_post(start_at):
         logger.log(21, 'Тг пост:')
         logger.log(21, tg_post)
         # print(tg_post)
-        bot.send_message(chat_id=chat_id, text=tg_post, parse_mode='HTML', disable_web_page_preview=True)
-        return True
+        for i in range(5):
+            try:
+                bot.send_message(chat_id=chat_id, text=tg_post, parse_mode='HTML', disable_web_page_preview=True, timeout=100)
+                return True
+            except Exception as tg_send_ex:
+                logger.error('tg_send_ex:', exc_info=tg_send_ex)
+            time.sleep(60)
 
     except Exception as create_top_news_post_ex:
         logger.error('create_top_news_post_ex:', exc_info=create_top_news_post_ex)
