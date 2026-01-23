@@ -9,3 +9,5 @@ services:
       - .env
     environment:
       - TZ=Europe/Moscow
+    volumes:
+      - ./tmp:./tg_ai_news_dir
