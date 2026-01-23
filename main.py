@@ -31,7 +31,6 @@ logger.addHandler(s_handler)
 
 bot = telebot.TeleBot(environ.get('TG_TOKEN'))
 
-# https://t.me/+Zx58srfKeE00YTMy
 
 if not os.path.exists('last_send.txt'):
     with open('last_send.txt', 'w') as f:
@@ -44,10 +43,6 @@ headers = {
 
 news_limit = 15
 
-# def test_openai():
-    # client = OpenAI(base_url='https://api.proxyapi.ru/openai/v1', api_key='sk-AAoWRXf9M03NVH2D1IFZU6T8tU7L9MOH')
-    # res = client.responses.create(model='o3-mini', input='Какой лимит на запросы к openai по api?')
-    # print(res.output_text)
 def openrouter_request(msg):
     client = OpenAI(base_url=environ.get('AI_REF'), api_key=environ.get('AI_KEY'))
     res = client.chat.completions.create(
@@ -65,27 +60,10 @@ def openrouter_request(msg):
 #     res = client.models.generate_content(model='gemini-3-flash-preview', contents='Максимальное количество символов в запросе к google-genai, gemini-3-flash-preview через python (метод generate_content) с бесплатным тарифом')
 #     print(res.text)
 
-# def test_proxyapi():
-#     url = "https://api.proxyapi.ru/google/v1beta/models/gemini-2.0-flash:generateContent"
-#     headers = {
-#         'Content-Type': 'application/json',
-#         'Authorization': 'Bearer sk-AAoWRXf9M03NVH2D1IFZU6T8tU7L9MOH'
-#     }
-#     data = {
-#         'contents': [{
-#             'patrs': [{'text': 'Максимальное количество символов в запросе к google-genai, gemini-3-flash-preview через python (метод generate_content) с бесплатным тарифом'}]
-#         }]
-#     }
-#     response = requests.post(url, headers=headers, json=data)
-#     res = response.json()
-#     # text = res['candidates'][0]['content']['parts'][0]['text']
-#     print(res)
 
 # def main():
 
 
-# def send_msg_to_tg_group(msg):
-#     bot.send_message(chat_id=-1003577095724, text=msg)
 
 # @bot.message_handler(content_types=['text'])
 # def get_reply_chat_id(message):
@@ -458,7 +436,6 @@ def main():
 
 if __name__ == '__main__':
     # bot.infinity_polling()
-    # bot.send_message(chat_id=-1003577095724, text='вот <b>так</b>\nnew row', parse_mode='HTML')
     main()
 
 #     res = """Вот результирующий список с краткими резюме для каждой новости:
@@ -592,7 +569,7 @@ if __name__ == '__main__':
 #         tg_post += f"""📢 {answers[id]}\n🔗<a href="{ref}">Источник</a>\n\n"""
 #
 #     print(tg_post)
-#     bot.send_message(chat_id=-1003577095724, text=tg_post, parse_mode='HTML', disable_web_page_preview=True)
+
 
 
 
