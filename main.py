@@ -436,6 +436,7 @@ def main():
 
 if __name__ == '__main__':
     # bot.infinity_polling()
+    logger.log(21, 'start')
     main()
 
 #     res = """Вот результирующий список с краткими резюме для каждой новости:
