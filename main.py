@@ -325,10 +325,22 @@ def get_rssexport_rbc_ru_rss_news(start_at):
 def get_news(start_at):
     news = dict()
 
-    news.update(get_sports_ru_news(start_at))
-    news.update(get_championat_com_rss_news(start_at))
-    news.update(get_sport24_ru_news(start_at))
-    news.update(get_rssexport_rbc_ru_rss_news(start_at))
+    sites = [lambda: get_sports_ru_news(start_at), lambda: get_championat_com_rss_news(start_at),
+             lambda: get_sport24_ru_news(start_at), lambda: get_rssexport_rbc_ru_rss_news(start_at)]
+
+    for n in sites:
+        for i in range(5):
+            new_news = n()
+            if new_news:
+                news.update(new_news)
+                break
+            logger.log(21, f'Попытка {i}')
+            time.sleep(15)
+
+    # news.update(get_sports_ru_news(start_at))
+    # news.update(get_championat_com_rss_news(start_at))
+    # news.update(get_sport24_ru_news(start_at))
+    # news.update(get_rssexport_rbc_ru_rss_news(start_at))
 
     return news
 
@@ -406,6 +418,10 @@ def create_top_news_post(start_at):
     return False
 
 def main():
+    # start_at = datetime.time(0, 0)
+    # get_news(start_at)
+    # return
+
     wait_sec = 15
     while True:
         try:
