@@ -80,7 +80,7 @@ def get_sports_ru_news(start_at):
     news = dict()
     try:
         url = r"https://www.sports.ru/news/top/"
-        res = requests.get(url=url, headers=headers, timeout=100)
+        res = requests.get(url=url, headers=headers, timeout=60)
         soup = BeautifulSoup(res.text, 'lxml')
         # print(soup)
         news_p_elements = soup.find("li", class_="panel active-panel").find("div", class_="short-news").find_all("p")
@@ -134,7 +134,7 @@ def get_championat_com_rss_news(start_at):
     news = dict()
     try:
         url = r'https://www.championat.com/rss/news/'
-        res = requests.get(url=url, headers=headers, timeout=100)
+        res = requests.get(url=url, headers=headers, timeout=60)
         # print(res.status_code)
         soup = BeautifulSoup(res.content, 'xml')
         news_items = soup.find_all('item')
@@ -181,7 +181,7 @@ def get_sport24_ru_news(start_at):
     news = dict()
     try:
         url = r"https://sport24.ru/mobile-news"
-        res = requests.get(url=url, headers=headers, timeout=100)
+        res = requests.get(url=url, headers=headers, timeout=60)
         # print(res.text)
         soup = BeautifulSoup(res.text, 'lxml')
         # print(soup.text)
@@ -232,7 +232,7 @@ def get_sport24_ru_news(start_at):
 #     news = dict()
 #     try:
 #         url = r"https://www.sport-express.ru/services/materials/news/se/"
-#         res = requests.get(url=url, headers=headers, timeout=100)
+#         res = requests.get(url=url, headers=headers, timeout=60)
 #         # print(res.status_code)
 #         soup = BeautifulSoup(res.content, 'xml')
 #
@@ -275,7 +275,7 @@ def get_rssexport_rbc_ru_rss_news(start_at):
     news = dict()
     try:
         url = r"https://rssexport.rbc.ru/sport/news/30/base.rss"
-        res = requests.get(url=url, headers=headers, timeout=100)
+        res = requests.get(url=url, headers=headers, timeout=60)
         # print(res.status_code)
         soup = BeautifulSoup(res.content, 'xml')
 
@@ -329,13 +329,13 @@ def get_news(start_at):
              lambda: get_sport24_ru_news(start_at), lambda: get_rssexport_rbc_ru_rss_news(start_at)]
 
     for n in sites:
-        for i in range(5):
+        for i in range(1, 6):
             new_news = n()
             if new_news:
                 news.update(new_news)
                 break
             logger.log(21, f'Попытка {i}')
-            time.sleep(15)
+            time.sleep(60 * i)
 
     # news.update(get_sports_ru_news(start_at))
     # news.update(get_championat_com_rss_news(start_at))
@@ -349,6 +349,10 @@ def create_top_news_post(start_at):
     news = get_news(start_at)
     if not news:
         logger.log(21, f"Не удалось получить новости!")
+        return False
+
+    if len(news) < 5:
+        logger.log(21, f"Новостей меньше 5!")
         return False
 
     try:
@@ -431,14 +435,14 @@ def main():
                 # if time_now.hour == t.hour and time_now.minute == t.minute:
                 send_time = datetime.datetime(time_now.year, time_now.month, time_now.day, t.hour, t.minute)
                 if time_now > send_time and (time_now - send_time).seconds / 60 < 3:  # время отправки + 3 мин
-                    print(f"+ Время {t}")
+                    # print(f"+ Время {t}")
                     with open('last_send.txt', 'r') as f:
                         last_time = datetime.datetime.strptime(f.read(), '%Y.%m.%d %H:%M:%S')
                         if last_time.date() == time_now.date():
                             start_at = last_time.time()
                         else:
                             start_at = datetime.time(0,0)
-                        print('start', start_at)
+                        print('+ check', start_at)
                         if (time_now - last_time).seconds / 60 > 10 or last_time.date() != time_now.date():  # если отправлялось больше 10 мин назад
                             if create_top_news_post(start_at):
                             #     print('try to create a post')
@@ -457,7 +461,7 @@ def main():
 
 if __name__ == '__main__':
     # bot.infinity_polling()
-    logger.log(21, 'start')
+    logger.log(21, 'start app')
     main()
 
 #     res = """Вот результирующий список с краткими резюме для каждой новости:
