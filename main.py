@@ -126,6 +126,7 @@ def get_sports_ru_news(start_at):
     except Exception as get_news_ex:
         logger.error('get_news_ex:', exc_info=get_news_ex)
         # raise get_news_ex
+        news = None
 
     return news
 
@@ -174,6 +175,7 @@ def get_championat_com_rss_news(start_at):
     except Exception as get_championat_com_rss_news_ex:
         logger.error('get_championat_com_rss_news_ex:', exc_info=get_championat_com_rss_news_ex)
         # raise get_championat_com_rss_news_ex
+        news = None
 
     return news
 
@@ -199,6 +201,7 @@ def get_sport24_ru_news(start_at):
                 post_time = datetime.datetime.fromtimestamp(int(n['publishDate'])/1000).time()
                 # post_time = f"{post_time.hour}:{post_time.minute}"
                 if f"{post_time}" < f"{start_at}":
+                    print(f"{post_time}", f"{start_at}")
                     continue
 
                 post_title = str(n['title']).strip()
@@ -224,6 +227,7 @@ def get_sport24_ru_news(start_at):
     except Exception as get_sport24_ru_news_ex:
         logger.error('get_sport24_ru_news_ex:', exc_info=get_sport24_ru_news_ex)
         # raise get_sport24_ru_news_ex
+        news = None
 
     return news
 
@@ -267,6 +271,7 @@ def get_sport24_ru_news(start_at):
 #     except Exception as get_sport_express_ru_news_rss_ex:
 #         logger.error('get_sport_express_ru_news_rss_ex:', exc_info=get_sport_express_ru_news_rss_ex)
 #         raise get_sport_express_ru_news_rss_ex
+#         news = None
 #
 #     return news
 
@@ -317,6 +322,7 @@ def get_rssexport_rbc_ru_rss_news(start_at):
     except Exception as get_rssexport_rbc_ru_rss_news_ex:
         logger.error('get_rssexport_rbc_ru_rss_news_ex:', exc_info=get_rssexport_rbc_ru_rss_news_ex)
         # raise get_rssexport_rbc_ru_rss_news_ex
+        news = None
 
     return news
 
@@ -331,11 +337,11 @@ def get_news(start_at):
     for n in sites:
         for i in range(1, 6):
             new_news = n()
-            if new_news:
+            if new_news is not None:
                 news.update(new_news)
                 break
             logger.log(21, f'Попытка {i}')
-            time.sleep(60 * i)
+            time.sleep(45)
 
     # news.update(get_sports_ru_news(start_at))
     # news.update(get_championat_com_rss_news(start_at))
@@ -461,6 +467,12 @@ def main():
 
 if __name__ == '__main__':
     # bot.infinity_polling()
+    # n = get_rssexport_rbc_ru_rss_news('01:48:24')
+    # print(n)
+    # if n is not None:
+    #     print('net')
+    # print('end')
+
     logger.log(21, 'start app')
     main()
 
