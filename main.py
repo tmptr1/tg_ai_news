@@ -2,7 +2,9 @@
 from openai import OpenAI
 import telebot
 from bs4 import BeautifulSoup
-
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+# import urllib.request
 import time
 import os
 from os import environ
@@ -10,11 +12,21 @@ import re
 from dotenv import load_dotenv
 import requests
 import datetime
+import locale
 import json
 import logging
 from logging.handlers import RotatingFileHandler
 
 from config import times, chat_id, ai_model
+
+locale.setlocale(locale.LC_ALL, "ru")
+
+useragrnt = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36'
+option = webdriver.ChromeOptions()
+option.add_argument(f'user-agent={useragrnt}')
+option.add_argument('--disable-blink-features=AutomationControlled')
+option.add_experimental_option("prefs", {"profile.default_content_setting_values.cookies": 2})
+option.add_argument('--headless')
 
 load_dotenv()
 
@@ -416,7 +428,7 @@ def create_top_news_post(start_at):
 
     return False
 
-def main():
+def main_old():
     # start_at = datetime.time(0, 0)
     # get_news(start_at)
     # return
@@ -452,7 +464,82 @@ def main():
             logger.error('loop_ex:', exc_info=loop_ex)
         time.sleep(wait_sec)
 
+def send_tg_post():
+    with open('last_send.txt', 'r') as f:
+        last_time = datetime.datetime.strptime(f.read(), '%Y.%m.%d %H:%M:%S')
+    last_data = last_time.strftime('%d %B')
+    ai_response = proxyapi_request(f'''Найди самую интересную новость спортивного бизнеса в России начиная с {last_data}, найди ссылку на первоисточник, напиши пост для телеграмм канала спортивного журнала. Темы от стройки спортивных объектов до маркетинга спортивных проектов, сделок и соглашений, инвестиций и спонсорства, кадровые изменения, назначения в области менеджмента в спорте, налоговые и юридические изменения в индустрии, креативные активации и работы с болельщиками, исследованияв спорте.
+    Ответ помести в многострочную переменную python, например, news_post = """Пост""" . Весть текст поста не должен превышать 1020 символов. Дополнительно напиши или продублируй заголовок новости в переменную: topic = "Заголовок" . В самом тексте поста не должны содержаться двойные кавычки ("). Пост будет отправлен с parse_mode='HTML', то есть можно использовать теги, например, <b>. В конце поста вставь ссылку на первоисточник с помощью: <a href='ссылка'> . Можно использовать эмодзи. ''')
 
+    logger.log(21, f"{ai_response=}")
+    # print('===========')
+    tg_post = re.search(r'""".+"""', ai_response, re.DOTALL).group()[3:-3]
+    logger.log(21, f"{tg_post=}")
+    title = re.search(r'topic?.=?.".+"', ai_response).group()
+    title = title.replace('topic', '').replace('=', '').replace('"', '').replace("'", '').strip()
+    logger.log(21, f"{title=}")
+    try:
+        driver = webdriver.Chrome(options=option)
+        driver.set_page_load_timeout(100)
+        driver.maximize_window()
+        url = fr'https://www.google.com/search?as_st=y&hl=ru&as_q={'+'.join(title.split())}&udm=2&as_filetype=jpg'
+        driver.get(url=url)
+        time.sleep(5)
+        search = driver.find_element(By.ID, 'search')
+        search.find_element(By.TAG_NAME, 'img').click()
+        time.sleep(5)
+        right_side = driver.find_element(By.TAG_NAME, 'c-wiz')
+        images = right_side.find_elements(By.TAG_NAME, 'img')
+        # print(len(images))
+        src = None
+        for img in images:
+            if img.get_attribute('alt') is not None and img.get_attribute('alt') != '':
+                src = img.get_attribute('src')
+                break
+        logger.log(21, f"{src=}")
+    except Exception as driver_ex:
+        logger.error('driver_ex:', exc_info=driver_ex)
+        return False
+    finally:
+        driver.quit()
+
+    time.sleep(5)
+    # urllib.request.urlretrieve(src, 'new_img.jpg')
+    res = requests.get(url=src, timeout=100)
+    if res.status_code != 200:
+        return False
+
+    with open('new_img.jpg', 'wb') as f:
+        f.write(res.content)
+
+    photo_file = open('new_img.jpg', 'rb')
+    bot.send_photo(chat_id=chat_id, photo=photo_file, caption=tg_post, parse_mode='HTML', timeout=100)
+    return True
+
+
+def main():
+    wait_sec = 15
+    while True:
+        try:
+            time_now = datetime.datetime.now()
+            for t in times:
+                send_time = datetime.datetime(time_now.year, time_now.month, time_now.day, t.hour, t.minute)
+                if time_now > send_time and (time_now - send_time).seconds / 60 < 5:  # время отправки + 3 мин
+                    # print(f"+ Время {t}")
+                    with open('last_send.txt', 'r') as f:
+                        last_time = datetime.datetime.strptime(f.read(), '%Y.%m.%d %H:%M:%S')
+                        if (time_now - last_time).seconds / 60 > 10 or last_time.date() != time_now.date():  # если отправлялось больше 10 мин назад
+
+                            if send_tg_post():
+                                with open('last_send.txt', 'w') as f: # 2026.01.26 09:48:24
+                                    f.write(f"{datetime.datetime.now().strftime('%Y.%m.%d %H:%M:%S')}")
+
+                    # time.sleep(60)
+                # else:
+                # print('-', t)
+        except Exception as loop_ex:
+            logger.error('loop_ex:', exc_info=loop_ex)
+        time.sleep(wait_sec)
 
 if __name__ == '__main__':
     # print(proxyapi_request())
