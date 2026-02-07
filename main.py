@@ -4,6 +4,8 @@ import telebot
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 # import urllib.request
 import time
 import os
@@ -479,7 +481,7 @@ def send_tg_post():
     title = title.replace('topic', '').replace('=', '').replace('"', '').replace("'", '').strip()
     logger.log(21, f"{title=}")
     try:
-        driver = webdriver.Chrome(options=option)
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=option)
         driver.set_page_load_timeout(100)
         driver.maximize_window()
         url = fr'https://www.google.com/search?as_st=y&hl=ru&as_q={'+'.join(title.split())}&udm=2&as_filetype=jpg'
