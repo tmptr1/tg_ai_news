@@ -11,3 +11,4 @@ services:
       - TZ=Europe/Moscow
     volumes:
       - ./:/tg_ai_news_dir
+
