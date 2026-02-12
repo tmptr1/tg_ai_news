@@ -1,6 +1,5 @@
 FROM python:3.12-alpine
 ENV PYTHONUNBUFFERED=1
-RUN apk add --update chromium chromium-chromedriver
 
 WORKDIR /tg_ai_news_dir
 COPY requirements.txt .
