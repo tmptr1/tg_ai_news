@@ -294,6 +294,7 @@ def main():
                 # print('-', t)
         except Exception as loop_ex:
             logger.error('loop_ex:', exc_info=loop_ex)
+            time.sleep(30)
         time.sleep(wait_sec)
 
 # @bot.message_handler(content_types=['text'])
